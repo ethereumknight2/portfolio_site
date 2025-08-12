@@ -8,7 +8,7 @@ import {
   Youtube,
   Twitch,
   ExternalLink,
-  MessageCircle,
+  Coffee,
   Send,
 } from "lucide-react";
 import "./App.css";
@@ -33,22 +33,38 @@ const App = () => {
         {
           id: 1,
           src: "/images/headshot1.png", // Fixed: removed /public/
-          title: "Headshot Portrait 1",
+          title: "Headshot 1",
         },
         {
           id: 2,
           src: "/images/headshot2.png",
-          title: "Headshot Portrait 2",
+          title: "Headshot 2",
         },
         {
           id: 3,
           src: "/images/headshot3.png",
-          title: "Headshot Portrait 3",
+          title: "Headshot 3",
         },
         {
           id: 4,
           src: "/images/headshot4.png",
-          title: "Bust Portrait 4",
+          title: "Headshot 4",
+        },
+      ],
+    },
+    {
+      id: "half body",
+      title: "Half Body",
+      images: [
+        {
+          id: 16,
+          src: "/images/halfbody1.png", 
+          title: "Halfbody 1",
+        },
+        {
+          id: 17,
+          src: "/images/halfbody2.png",
+          title: "Halfbody 2",
         },
       ],
     },
@@ -59,43 +75,22 @@ const App = () => {
         {
           id: 11,
           src: "/images/fullbody2.png",
-          title: "Full Body 2",
+          title: "Full Body 1",
         },
         {
           id: 12,
           src: "/images/fullbody3.png",
-          title: "Full Body 3",
+          title: "Full Body 2",
         },
         {
           id: 14,
           src: "/images/fullbody5.png",
-          title: "Full Body 5",
-        },
-      ],
-    },
-    {
-      id: "half body",
-      title: "Half Body",
-      images: [
-        {
-          id: 16,
-          src: "/images/couple1.png", // Fixed: changed from url to src and proper path
-          title: "Couple Art 1",
+          title: "Full Body 3",
         },
         {
-          id: 17,
-          src: "/images/couple2.png",
-          title: "Couple Art 2",
-        },
-        {
-          id: 18,
-          src: "/images/couple3.png",
-          title: "Couple Art 3",
-        },
-        {
-          id: 19,
-          src: "/images/couple4.png",
-          title: "Couple Art 4",
+          id: 15,
+          src: "/images/fullbody6.png",
+          title: "Full Body 4",
         },
       ],
     },
@@ -106,27 +101,7 @@ const App = () => {
         {
           id: 10,
           src: "/images/fullbody1.png",
-          title: "Scene1",
-        },
-        {
-          id: 21,
-          src: "/images/scene2.png",
-          title: "Scene Art 2",
-        },
-        {
-          id: 22,
-          src: "/images/scene3.png",
-          title: "Scene Art 3",
-        },
-        {
-          id: 23,
-          src: "/images/scene4.png",
-          title: "Scene Art 4",
-        },
-        {
-          id: 24,
-          src: "/images/scene5.png",
-          title: "Scene Art 5",
+          title: "Scene 1",
         },
       ],
     },
@@ -137,22 +112,28 @@ const App = () => {
         {
           id: 13,
           src: "/images/fullbody4.png",
-          title: "Reference",
+          title: "Reference Sheet 1",
         },
         {
           id: 26,
-          src: "/images/reference2.png",
+          src: "/images/refsheet1.png",
           title: "Reference Sheet 2",
         },
         {
           id: 27,
-          src: "/images/reference3.png",
+          src: "/images/refsheet2.png",
           title: "Reference Sheet 3",
         },
+      ],
+    },
+    {
+      id: "design",
+      title: "Designs",
+      images: [
         {
           id: 28,
-          src: "/images/reference4.png",
-          title: "Reference Sheet 4",
+          src: "/images/design1.png", 
+          title: "Design 1",
         },
       ],
     },
@@ -161,48 +142,53 @@ const App = () => {
   const priceData = [
     {
       type: "Bust",
-      price: "$50",
-      refImage: "/images/price-bust.png", // Fixed: use local images
+      price: "$2-8",
+      refImage: "/images/headshot4.png", // Fixed: use local images
     },
     {
       type: "Half Body",
-      price: "$75",
-      refImage: "/images/price-halfbody.png",
+      price: "$5-10",
+      refImage: "/images/pricehalfbody.png",
     },
     {
       type: "Full Body",
-      price: "$100",
-      refImage: "/images/price-fullbody.png",
-    },
-    {
-      type: "Couple",
-      price: "$150",
-      refImage: "/images/price-couple.png",
+      price: "$5-15",
+      refImage: "/images/pricefullbody.png",
     },
     {
       type: "Scene",
-      price: "$200",
-      refImage: "/images/price-scene.png",
+      price: "$25-40",
+      refImage: "/images/fullbody1.png",
     },
     {
       type: "Reference Sheet",
-      price: "$250",
-      refImage: "/images/price-reference.png",
+      price: "$35-60",
+      refImage: "/images/pricerefsheet.png",
+    },
+    {
+      type: "Design/Custom",
+      price: "$15-20",
+      refImage: "/images/pricedesign.png",
+    },
+    {
+      type: "Emote",
+      price: "$5 per",
+      refImage: "/images/emote.png",
     },
   ];
 
   const socialLinks = [
-    { name: "VGen", icon: ExternalLink, url: "#", color: "bg-purple-500" },
-    { name: "Twitter", icon: Twitter, url: "#", color: "bg-blue-500" },
+    { name: "VGen", icon: ExternalLink, url: "https://vgen.co/thebananaferret", color: "bg-purple-500" },
+    { name: "Twitter", icon: Twitter, url: "https://x.com/thebananaferret", color: "bg-blue-500" },
     {
       name: "Email",
       icon: Mail,
       url: "mailto:artist@example.com",
       color: "bg-red-500",
     },
-    { name: "Twitch", icon: Twitch, url: "#", color: "bg-purple-600" },
-    { name: "YouTube", icon: Youtube, url: "#", color: "bg-red-600" },
-    { name: "Discord", icon: MessageCircle, url: "#", color: "bg-indigo-500" },
+    { name: "Twitch", icon: Twitch, url: "https://www.twitch.tv/thebananaferret", color: "bg-purple-600" },
+    { name: "YouTube", icon: Youtube, url: "https://www.youtube.com/@thebananaferret", color: "bg-red-600" },
+    { name: "Kofi", icon: Coffee, url: "https://ko-fi.com/thebananaferret", color: "bg-indigo-500" },
   ];
 
   const openImageViewer = (image, sectionImages, index) => {
@@ -283,10 +269,10 @@ const App = () => {
           ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
           : "text-gray-800 hover:text-white hover:shadow-md"
       }`}
-      style={isActive ? {} : { ":hover": { backgroundColor: "#7a9099" } }}
+      style={isActive ? {} : { ":hover": { backgroundColor: "#8d7c62ff" } }}
       onMouseEnter={(e) => {
         if (!isActive) {
-          e.target.style.backgroundColor = "#7a9099";
+          e.target.style.backgroundColor = "#8d7c62ff";
         }
       }}
       onMouseLeave={(e) => {
@@ -353,13 +339,11 @@ const App = () => {
         return (
           <div className="space-y-8 fade-in">
             <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold gradient-text mb-4">
-                Welcome to My Art Studio
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Banana's Portfolio
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Professional digital artist specializing in character design,
-                illustrations, and custom artwork. Browse through my portfolio
-                galleries below.
+                Take a peek at my stuff! Once you're done, you can check the prices for each in the prices tab.
               </p>
             </div>
 
@@ -435,11 +419,11 @@ const App = () => {
         return (
           <div className="space-y-8 fade-in">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold gradient-text mb-4">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 Commission Prices
               </h2>
               <p className="text-lg text-gray-600">
-                Click on any reference image to view my portfolio
+                If you click on one of the images, you may return to my examples! Contact me for further information on pricing!
               </p>
             </div>
 
@@ -473,11 +457,11 @@ const App = () => {
         return (
           <div className="space-y-8">
             <div className="text-center mb-12 fade-in">
-              <h2 className="text-3xl font-bold gradient-text mb-4">
-                My Portfolio
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Portfolio
               </h2>
               <p className="text-lg text-gray-600">
-                Browse through my different art categories
+                Click on images to make them bigger!
               </p>
             </div>
 
@@ -490,48 +474,68 @@ const App = () => {
       case "T.O.S":
         return (
           <div className="space-y-6 fade-in">
-            <h2 className="text-3xl font-bold gradient-text mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">
               Terms of Service
             </h2>
 
             <div className="bg-white rounded-lg shadow-lg p-8 space-y-6">
               <div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                  Payment Terms
+                  General
                 </h3>
                 <p className="text-gray-600">
-                  Full payment is required upfront before work begins. Payments
-                  are accepted via PayPal, Venmo, or other agreed methods.
+                  - I have the right to turn down any commission for any reason <br></br>
+                  - Do not claim my artwork as your own<br></br>
+                  - My ToS and pricing is subject to change, you are only subject to the ToS and pricing at the time of your transaction <br></br>
+                  - Commercial use is prohibited unless you have purchased commercial rights along with your commission <br></br>
+                  - My TaT time is anywhere from 1-14 days without rush fee, but this time may be longer or shorter depending on schedule and complexity of your commission<br></br>
+                  - I allow three free edits after I have sent the sketch and you have paid half/full. When it is completed, you have two free edits, and then they cost +2$ per<br></br>
+                  - If my list is full, you will be put onto a waitlist. If rush free is applied, you may skip the waitlist<br></br>
+                  - With prices that add +20%, +50%, so on and so forth, it is the base price of add-ons increased by said amount. (ex. ref-sheet with 2 views and 1 item (40 dollars) but you request a redesign, which is up by 30%. the final price is now $52)<br></br>
+
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold text-green-800 mb-3">
+                  Will Do
+                </h3>
+                <p className="text-gray-600">
+                  - Humans/furries (anthros)<br></br>
+                  - Any animals<br></br>
+                  - Ships<br></br>
+                  - SFW/lightly suggestive<br></br>
+                  - Blood/gore<br></br>
+                  - Fanart & OC art<br></br>
+
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold text-red-800 mb-3">
+                  Will Not Do
+                </h3>
+                <p className="text-gray-600">
+                  - NSFW<br></br>
+                  - Illegal ship art<br></br>
+                  - Mecha<br></br>
+                  - Heavy gore<br></br>
+                  - Anything political or problematic<br></br>
+
                 </p>
               </div>
 
               <div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                  Revisions
+                  Payment Process
                 </h3>
                 <p className="text-gray-600">
-                  Up to 3 minor revisions are included. Major changes or
-                  additional revisions will incur extra charges.
-                </p>
-              </div>
+                  When purchasing a commission, please tell me the info of what you'd like (please provide reference images in your intimal message of what you would like drawn. If it's a design, please provide a detailed description or some reference images) and if I accept, I will provide a quote. If this pricing is okay with you, I will start on the first sketch.<br></br>
 
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                  Delivery Time
-                </h3>
-                <p className="text-gray-600">
-                  Typical delivery time is 1-2 weeks depending on complexity.
-                  Rush orders available for additional fee.
-                </p>
-              </div>
+                  Once I finish the first sketch, I will send it over with a watermark, and you will pay half. I will not continue if half is not provided. You can also provide full payment at this point. I am open to payment plans for more expensive commissions. During this phase, you can ask for any edits (refer to above T.O.S section for more details)<br></br>
 
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                  Usage Rights
-                </h3>
-                <p className="text-gray-600">
-                  Client receives full usage rights for personal use. Commercial
-                  use requires additional licensing fee.
+                  Refunds are only allowed if I have not started on further than the sketch.<br></br>
+
                 </p>
               </div>
             </div>
@@ -542,11 +546,11 @@ const App = () => {
         return (
           <div className="space-y-8 fade-in">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold gradient-text mb-4">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 Get In Touch
               </h2>
               <p className="text-lg text-gray-600">
-                Ready to commission your perfect artwork? Send me a message!
+                Send me a message via email!
               </p>
             </div>
 
@@ -596,7 +600,7 @@ const App = () => {
                       })
                     }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                    placeholder="Tell me about your project..."
+                    placeholder="Tell me about your commission..."
                   />
                 </div>
 
@@ -618,14 +622,14 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: "#c4dee6" }}>
+    <div className="min-h-screen flex" style={{ backgroundColor: "#beb09bff" }}>
       {/* Dark Left Sidebar */}
       <aside
         className="w-64 shadow-2xl flex flex-col"
-        style={{ backgroundColor: "#93aab0" }}
+        style={{ backgroundColor: "#aa9677ff" }}
       >
         {/* Logo */}
-        <div className="p-6 border-b" style={{ borderColor: "#7a9099" }}>
+        <div className="p-6 border-b" style={{ borderColor: "#928269ff" }}>
           <div className="flex items-center space-x-3">
             <img
               src="/images/logo.png"
@@ -648,9 +652,9 @@ const App = () => {
         </nav>
 
         {/* Social Links */}
-        <div className="p-4 border-t" style={{ borderColor: "#7a9099" }}>
+        <div className="p-4 border-t" style={{ borderColor: "#9b896fff" }}>
           <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
-            Connect
+            Socials
           </h3>
           <div className="grid grid-cols-3 gap-3">
             {socialLinks.map((social) => (
