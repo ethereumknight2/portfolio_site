@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,6 +10,10 @@ import {
   ExternalLink,
   Coffee,
   Send,
+  Menu,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
 } from "lucide-react";
 import "./App.css";
 
@@ -18,6 +22,26 @@ const App = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [homeSliderIndexes, setHomeSliderIndexes] = useState({});
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [imageTransform, setImageTransform] = useState({
+    scale: 1,
+    x: 0,
+    y: 0,
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [magnifierPos, setMagnifierPos] = useState({
+    x: 0,
+    y: 0,
+    imageX: 0,
+    imageY: 0,
+    imageWidth: 0,
+    imageHeight: 0,
+  });
+  const [showMagnifier, setShowMagnifier] = useState(false);
+  const imageRef = useRef(null);
+  const containerRef = useRef(null);
+  const magnifierRef = useRef(null);
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
@@ -32,7 +56,7 @@ const App = () => {
       images: [
         {
           id: 1,
-          src: "/images/headshot1.png", // Fixed: removed /public/
+          src: "/images/headshot1.png",
           title: "Headshot 1",
         },
         {
@@ -58,7 +82,7 @@ const App = () => {
       images: [
         {
           id: 16,
-          src: "/images/halfbody1.png", 
+          src: "/images/halfbody1.png",
           title: "Halfbody 1",
         },
         {
@@ -132,7 +156,7 @@ const App = () => {
       images: [
         {
           id: 28,
-          src: "/images/design1.png", 
+          src: "/images/design1.png",
           title: "Design 1",
         },
       ],
@@ -143,7 +167,7 @@ const App = () => {
     {
       type: "Bust",
       price: "$2-8",
-      refImage: "/images/headshot4.png", // Fixed: use local images
+      refImage: "/images/headshot4.png",
     },
     {
       type: "Half Body",
@@ -178,26 +202,60 @@ const App = () => {
   ];
 
   const socialLinks = [
-    { name: "VGen", icon: ExternalLink, url: "https://vgen.co/thebananaferret", color: "bg-purple-500" },
-    { name: "Twitter", icon: Twitter, url: "https://x.com/thebananaferret", color: "bg-blue-500" },
+    {
+      name: "VGen",
+      icon: ExternalLink,
+      url: "https://vgen.co/thebananaferret",
+      color: "bg-purple-500",
+    },
+    {
+      name: "Twitter",
+      icon: Twitter,
+      url: "https://x.com/thebananaferret",
+      color: "bg-blue-500",
+    },
     {
       name: "Email",
       icon: Mail,
       url: "mailto:artist@example.com",
       color: "bg-red-500",
     },
-    { name: "Twitch", icon: Twitch, url: "https://www.twitch.tv/thebananaferret", color: "bg-purple-600" },
-    { name: "YouTube", icon: Youtube, url: "https://www.youtube.com/@thebananaferret", color: "bg-red-600" },
-    { name: "Kofi", icon: Coffee, url: "https://ko-fi.com/thebananaferret", color: "bg-indigo-500" },
+    {
+      name: "Twitch",
+      icon: Twitch,
+      url: "https://www.twitch.tv/thebananaferret",
+      color: "bg-purple-600",
+    },
+    {
+      name: "YouTube",
+      icon: Youtube,
+      url: "https://www.youtube.com/@thebananaferret",
+      color: "bg-red-600",
+    },
+    {
+      name: "Kofi",
+      icon: Coffee,
+      url: "https://ko-fi.com/thebananaferret",
+      color: "bg-indigo-500",
+    },
   ];
 
   const openImageViewer = (image, sectionImages, index) => {
     setSelectedImage({ image, sectionImages, index });
     setCurrentImageIndex(index);
+    setImageTransform({ scale: 1, x: 0, y: 0 });
+    setShowMagnifier(false);
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = "hidden";
   };
 
   const closeImageViewer = () => {
     setSelectedImage(null);
+    setImageTransform({ scale: 1, x: 0, y: 0 });
+    setShowMagnifier(false);
+    setIsDragging(false);
+    // Restore body scroll
+    document.body.style.overflow = "unset";
   };
 
   const nextImage = () => {
@@ -210,6 +268,8 @@ const App = () => {
         image: selectedImage.sectionImages[nextIndex],
         index: nextIndex,
       });
+      setImageTransform({ scale: 1, x: 0, y: 0 });
+      setShowMagnifier(false);
     }
   };
 
@@ -224,8 +284,145 @@ const App = () => {
         image: selectedImage.sectionImages[prevIndex],
         index: prevIndex,
       });
+      setImageTransform({ scale: 1, x: 0, y: 0 });
+      setShowMagnifier(false);
     }
   };
+
+  // Image zoom and pan functions
+  const zoomIn = () => {
+    setImageTransform((prev) => ({
+      ...prev,
+      scale: Math.min(prev.scale * 1.5, 5),
+    }));
+  };
+
+  const zoomOut = () => {
+    setImageTransform((prev) => ({
+      ...prev,
+      scale: Math.max(prev.scale / 1.5, 0.5),
+    }));
+  };
+
+  const resetTransform = () => {
+    setImageTransform({ scale: 1, x: 0, y: 0 });
+  };
+
+  // Mouse/touch event handlers for dragging
+  const handleMouseDown = (e) => {
+    if (imageTransform.scale > 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - imageTransform.x,
+        y: e.clientY - imageTransform.y,
+      });
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (isDragging && imageTransform.scale > 1) {
+      setImageTransform((prev) => ({
+        ...prev,
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      }));
+    }
+
+    // Magnifier logic - optimized for responsiveness
+    if (imageRef.current && !isDragging && imageTransform.scale === 1) {
+      const rect = imageRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Check if mouse is within image bounds
+      if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+        // Calculate position relative to the container immediately
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const containerX = e.clientX - containerRect.left;
+        const containerY = e.clientY - containerRect.top;
+
+        // Update magnifier position immediately without delay
+        if (magnifierRef.current) {
+          magnifierRef.current.style.left = `${containerX - 75}px`;
+          magnifierRef.current.style.top = `${containerY - 75}px`;
+          magnifierRef.current.style.backgroundPosition = `-${
+            x * 2.5 - 75
+          }px -${y * 2.5 - 75}px`;
+          magnifierRef.current.style.display = "block";
+        }
+
+        if (!showMagnifier) {
+          setShowMagnifier(true);
+        }
+      } else {
+        if (magnifierRef.current) {
+          magnifierRef.current.style.display = "none";
+        }
+        if (showMagnifier) {
+          setShowMagnifier(false);
+        }
+      }
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    if (magnifierRef.current) {
+      magnifierRef.current.style.display = "none";
+    }
+    setShowMagnifier(false);
+    setIsDragging(false);
+  };
+
+  // Touch event handlers for mobile
+  const handleTouchStart = (e) => {
+    if (imageTransform.scale > 1 && e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.touches[0].clientX - imageTransform.x,
+        y: e.touches[0].clientY - imageTransform.y,
+      });
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (isDragging && imageTransform.scale > 1 && e.touches.length === 1) {
+      e.preventDefault();
+      setImageTransform((prev) => ({
+        ...prev,
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y,
+      }));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Mouse wheel zoom
+  const handleWheel = (e) => {
+    if (selectedImage) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      setImageTransform((prev) => ({
+        ...prev,
+        scale: Math.min(Math.max(prev.scale * delta, 0.5), 5),
+      }));
+    }
+  };
+
+  // Add wheel event listener when modal is open
+  useEffect(() => {
+    if (selectedImage) {
+      const handleWheelEvent = (e) => handleWheel(e);
+      window.addEventListener("wheel", handleWheelEvent, { passive: false });
+      return () => window.removeEventListener("wheel", handleWheelEvent);
+    }
+  }, [selectedImage, imageTransform.scale]);
 
   const handleContactSubmit = () => {
     if (contactForm.name && contactForm.email && contactForm.message) {
@@ -238,6 +435,7 @@ const App = () => {
 
   const handlePriceImageClick = () => {
     setActiveTab("Portfolio");
+    setIsMobileMenuOpen(false);
   };
 
   const nextHomeSliderImage = (sectionId) => {
@@ -263,7 +461,10 @@ const App = () => {
 
   const SidebarButton = ({ label, isActive, onClick }) => (
     <button
-      onClick={onClick}
+      onClick={() => {
+        onClick();
+        setIsMobileMenuOpen(false); // Close mobile menu when tab is selected
+      }}
       className={`sidebar-item w-full text-left px-4 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
         isActive
           ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
@@ -316,7 +517,7 @@ const App = () => {
             >
               <div className="relative overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover-glow">
                 <img
-                  src={image.src} // Fixed: use 'src' instead of 'url'
+                  src={image.src}
                   alt={image.title}
                   className="w-64 h-48 object-cover"
                 />
@@ -343,11 +544,12 @@ const App = () => {
                 Banana's Portfolio
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Take a peek at my stuff! Once you're done, you can check the prices for each in the prices tab.
+                Take a peek at my stuff! Once you're done, you can check the
+                prices for each in the prices tab.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {gallerySections.map((section) => {
                 const currentSliderIndex = homeSliderIndexes[section.id] || 0;
                 const currentImage = section.images[currentSliderIndex];
@@ -423,11 +625,12 @@ const App = () => {
                 Commission Prices
               </h2>
               <p className="text-lg text-gray-600">
-                If you click on one of the images, you may return to my examples! Contact me for further information on pricing!
+                If you click on one of the images, you may return to my
+                examples! Contact me for further information on pricing!
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {priceData.map((item, index) => (
                 <div
                   key={index}
@@ -484,15 +687,24 @@ const App = () => {
                   General
                 </h3>
                 <p className="text-gray-600">
-                  - I have the right to turn down any commission for any reason <br></br>
-                  - Do not claim my artwork as your own<br></br>
-                  - My ToS and pricing is subject to change, you are only subject to the ToS and pricing at the time of your transaction <br></br>
-                  - Commercial use is prohibited unless you have purchased commercial rights along with your commission <br></br>
-                  - My TaT time is anywhere from 1-14 days without rush fee, but this time may be longer or shorter depending on schedule and complexity of your commission<br></br>
-                  - I allow three free edits after I have sent the sketch and you have paid half/full. When it is completed, you have two free edits, and then they cost +2$ per<br></br>
-                  - If my list is full, you will be put onto a waitlist. If rush free is applied, you may skip the waitlist<br></br>
-                  - With prices that add +20%, +50%, so on and so forth, it is the base price of add-ons increased by said amount. (ex. ref-sheet with 2 views and 1 item (40 dollars) but you request a redesign, which is up by 30%. the final price is now $52)<br></br>
-
+                  - I have the right to turn down any commission for any reason{" "}
+                  <br></br>- Do not claim my artwork as your own<br></br>- My
+                  ToS and pricing is subject to change, you are only subject to
+                  the ToS and pricing at the time of your transaction <br></br>-
+                  Commercial use is prohibited unless you have purchased
+                  commercial rights along with your commission <br></br>- My TaT
+                  time is anywhere from 1-14 days without rush fee, but this
+                  time may be longer or shorter depending on schedule and
+                  complexity of your commission<br></br>- I allow three free
+                  edits after I have sent the sketch and you have paid
+                  half/full. When it is completed, you have two free edits, and
+                  then they cost +2$ per<br></br>- If my list is full, you will
+                  be put onto a waitlist. If rush free is applied, you may skip
+                  the waitlist<br></br>- With prices that add +20%, +50%, so on
+                  and so forth, it is the base price of add-ons increased by
+                  said amount. (ex. ref-sheet with 2 views and 1 item (40
+                  dollars) but you request a redesign, which is up by 30%. the
+                  final price is now $52)<br></br>
                 </p>
               </div>
 
@@ -501,13 +713,9 @@ const App = () => {
                   Will Do
                 </h3>
                 <p className="text-gray-600">
-                  - Humans/furries (anthros)<br></br>
-                  - Any animals<br></br>
-                  - Ships<br></br>
-                  - SFW/lightly suggestive<br></br>
-                  - Blood/gore<br></br>
-                  - Fanart & OC art<br></br>
-
+                  - Humans/furries (anthros)<br></br>- Any animals<br></br>-
+                  Ships<br></br>- SFW/lightly suggestive<br></br>- Blood/gore
+                  <br></br>- Fanart & OC art<br></br>
                 </p>
               </div>
 
@@ -516,12 +724,9 @@ const App = () => {
                   Will Not Do
                 </h3>
                 <p className="text-gray-600">
-                  - NSFW<br></br>
-                  - Illegal ship art<br></br>
-                  - Mecha<br></br>
-                  - Heavy gore<br></br>
-                  - Anything political or problematic<br></br>
-
+                  - NSFW<br></br>- Illegal ship art<br></br>- Mecha<br></br>-
+                  Heavy gore<br></br>- Anything political or problematic
+                  <br></br>
                 </p>
               </div>
 
@@ -530,12 +735,20 @@ const App = () => {
                   Payment Process
                 </h3>
                 <p className="text-gray-600">
-                  When purchasing a commission, please tell me the info of what you'd like (please provide reference images in your intimal message of what you would like drawn. If it's a design, please provide a detailed description or some reference images) and if I accept, I will provide a quote. If this pricing is okay with you, I will start on the first sketch.<br></br>
-
-                  Once I finish the first sketch, I will send it over with a watermark, and you will pay half. I will not continue if half is not provided. You can also provide full payment at this point. I am open to payment plans for more expensive commissions. During this phase, you can ask for any edits (refer to above T.O.S section for more details)<br></br>
-
-                  Refunds are only allowed if I have not started on further than the sketch.<br></br>
-
+                  When purchasing a commission, please tell me the info of what
+                  you'd like (please provide reference images in your intimal
+                  message of what you would like drawn. If it's a design, please
+                  provide a detailed description or some reference images) and
+                  if I accept, I will provide a quote. If this pricing is okay
+                  with you, I will start on the first sketch.<br></br>
+                  Once I finish the first sketch, I will send it over with a
+                  watermark, and you will pay half. I will not continue if half
+                  is not provided. You can also provide full payment at this
+                  point. I am open to payment plans for more expensive
+                  commissions. During this phase, you can ask for any edits
+                  (refer to above T.O.S section for more details)<br></br>
+                  Refunds are only allowed if I have not started on further than
+                  the sketch.<br></br>
                 </p>
               </div>
             </div>
@@ -622,96 +835,265 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: "#beb09bff" }}>
-      {/* Dark Left Sidebar */}
-      <aside
-        className="w-64 shadow-2xl flex flex-col"
+    <div
+      className="min-h-screen bg-gray-50"
+      style={{ backgroundColor: "#beb09bff" }}
+    >
+      {/* Mobile Header */}
+      <div
+        className="lg:hidden bg-white shadow-md px-4 py-3 flex justify-between items-center"
         style={{ backgroundColor: "#aa9677ff" }}
       >
-        {/* Logo */}
-        <div className="p-6 border-b" style={{ borderColor: "#928269ff" }}>
-          <div className="flex items-center space-x-3">
-            <img
-              src="/images/logo.png"
-              alt="Artist Logo"
-              className="w-26 h-26 rounded-full object-cover"
-            />
+        <div className="flex items-center space-x-3">
+          <img
+            src="/images/logo.png"
+            alt="Artist Logo"
+            className="w-8 h-8 rounded-full object-cover"
+          />
+          <h1 className="text-lg font-bold text-gray-800">
+            Banana's Portfolio
+          </h1>
+        </div>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+        >
+          <Menu size={24} className="text-gray-800" />
+        </button>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+          <div
+            className="fixed top-0 left-0 h-full w-64 shadow-2xl transform transition-transform duration-300"
+            style={{ backgroundColor: "#aa9677ff" }}
+          >
+            {/* Mobile Menu Header */}
+            <div className="p-6 border-b" style={{ borderColor: "#928269ff" }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <img
+                    src="/images/logo.png"
+                    alt="Artist Logo"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  <h1 className="text-lg font-bold text-gray-800">Banana</h1>
+                </div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
+                  <X size={20} className="text-gray-800" />
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile Navigation */}
+            <nav className="flex-1 p-4 space-y-3">
+              {["Home", "Prices", "Portfolio", "T.O.S", "Contact"].map(
+                (tab) => (
+                  <SidebarButton
+                    key={tab}
+                    label={tab}
+                    isActive={activeTab === tab}
+                    onClick={() => setActiveTab(tab)}
+                  />
+                )
+              )}
+            </nav>
+
+            {/* Mobile Social Links */}
+            <div className="p-4 border-t" style={{ borderColor: "#9b896fff" }}>
+              <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
+                Socials
+              </h3>
+              <div className="grid grid-cols-3 gap-3">
+                {socialLinks.map((social) => (
+                  <SocialButton
+                    key={social.name}
+                    icon={social.icon}
+                    name={social.name}
+                    url={social.url}
+                    color={social.color}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-3">
-          {["Home", "Prices", "Portfolio", "T.O.S", "Contact"].map((tab) => (
-            <SidebarButton
-              key={tab}
-              label={tab}
-              isActive={activeTab === tab}
-              onClick={() => setActiveTab(tab)}
-            />
-          ))}
-        </nav>
+      <div className="flex">
+        {/* Desktop Sidebar */}
+        <aside
+          className="hidden lg:flex w-64 shadow-2xl flex-col"
+          style={{ backgroundColor: "#aa9677ff" }}
+        >
+          {/* Logo */}
+          <div className="p-6 border-b" style={{ borderColor: "#928269ff" }}>
+            <div className="flex items-center space-x-3">
+              <img
+                src="/images/logo.png"
+                alt="Artist Logo"
+                className="w-26 h-26 rounded-full object-cover"
+              />
+            </div>
+          </div>
 
-        {/* Social Links */}
-        <div className="p-4 border-t" style={{ borderColor: "#9b896fff" }}>
-          <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
-            Socials
-          </h3>
-          <div className="grid grid-cols-3 gap-3">
-            {socialLinks.map((social) => (
-              <SocialButton
-                key={social.name}
-                icon={social.icon}
-                name={social.name}
-                url={social.url}
-                color={social.color}
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-3">
+            {["Home", "Prices", "Portfolio", "T.O.S", "Contact"].map((tab) => (
+              <SidebarButton
+                key={tab}
+                label={tab}
+                isActive={activeTab === tab}
+                onClick={() => setActiveTab(tab)}
               />
             ))}
+          </nav>
+
+          {/* Social Links */}
+          <div className="p-4 border-t" style={{ borderColor: "#9b896fff" }}>
+            <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
+              Socials
+            </h3>
+            <div className="grid grid-cols-3 gap-3">
+              {socialLinks.map((social) => (
+                <SocialButton
+                  key={social.name}
+                  icon={social.icon}
+                  name={social.name}
+                  url={social.url}
+                  color={social.color}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-8 max-w-7xl mx-auto">{renderContent()}</div>
-      </main>
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-4 lg:p-8 max-w-7xl mx-auto">{renderContent()}</div>
+        </main>
+      </div>
 
-      {/* Image Viewer Modal */}
+      {/* Image Viewer Modal - Enhanced with zoom, pan, and magnifier */}
       {selectedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50 p-4 modal-backdrop">
-          <div className="relative max-w-5xl max-h-full">
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50 modal-backdrop">
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Close button */}
             <button
               onClick={closeImageViewer}
-              className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors duration-200 z-10 bg-black bg-opacity-50 rounded-full p-2"
+              className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors duration-200 z-20 bg-black bg-opacity-50 rounded-full p-2"
             >
               <X size={24} />
             </button>
 
+            {/* Zoom controls */}
+            <div className="absolute top-4 left-4 z-20 flex flex-col space-y-2">
+              <button
+                onClick={zoomIn}
+                className="text-white hover:text-gray-300 transition-colors duration-200 bg-black bg-opacity-50 rounded-full p-2"
+                title="Zoom In"
+              >
+                <ZoomIn size={20} />
+              </button>
+              <button
+                onClick={zoomOut}
+                className="text-white hover:text-gray-300 transition-colors duration-200 bg-black bg-opacity-50 rounded-full p-2"
+                title="Zoom Out"
+              >
+                <ZoomOut size={20} />
+              </button>
+              <button
+                onClick={resetTransform}
+                className="text-white hover:text-gray-300 transition-colors duration-200 bg-black bg-opacity-50 rounded-full p-2"
+                title="Reset View"
+              >
+                <RotateCcw size={20} />
+              </button>
+            </div>
+
+            {/* Navigation arrows */}
             <button
               onClick={prevImage}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 z-10 bg-black bg-opacity-50 rounded-full p-2"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 z-20 bg-black bg-opacity-50 rounded-full p-2"
             >
               <ChevronLeft size={32} />
             </button>
 
             <button
               onClick={nextImage}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 z-10 bg-black bg-opacity-50 rounded-full p-2"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 z-20 bg-black bg-opacity-50 rounded-full p-2"
             >
               <ChevronRight size={32} />
             </button>
 
-            <img
-              src={selectedImage.image.src} // Fixed: use 'src' instead of 'url'
-              alt={selectedImage.image.title}
-              className="max-w-full max-h-full object-contain rounded-lg"
-            />
+            {/* Image container with zoom and pan */}
+            <div
+              ref={containerRef}
+              className="w-full h-full overflow-hidden flex items-center justify-center p-8 relative"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+            >
+              <img
+                ref={imageRef}
+                src={selectedImage.image.src}
+                alt={selectedImage.image.title}
+                className="max-w-full max-h-full object-contain rounded-lg select-none"
+                style={{
+                  transform: `scale(${imageTransform.scale}) translate(${imageTransform.x}px, ${imageTransform.y}px)`,
+                  cursor:
+                    imageTransform.scale > 1
+                      ? isDragging
+                        ? "grabbing"
+                        : "grab"
+                      : "default",
+                  transition: isDragging ? "none" : "transform 0.3s ease",
+                }}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                draggable={false}
+              />
+              {/* Magnifying glass - Direct DOM manipulation for better performance */}
+              <div
+                ref={magnifierRef}
+                className="absolute border-4 border-white rounded-full pointer-events-none z-10 shadow-lg"
+                style={{
+                  width: "150px",
+                  height: "150px",
+                  display: "none",
+                  backgroundImage: `url(${selectedImage.image.src})`,
+                  backgroundSize: `${imageRef.current?.offsetWidth * 2.5}px ${
+                    imageRef.current?.offsetHeight * 2.5
+                  }px`,
+                  backgroundRepeat: "no-repeat",
+                  border: "3px solid white",
+                  boxShadow:
+                    "0 0 0 2px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.4)",
+                  transition: "none", // Remove any transitions for instant response
+                }}
+              />
+              )}
+            </div>
 
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-center bg-black bg-opacity-50 rounded-lg p-4">
+            {/* Image info */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-center bg-black bg-opacity-50 rounded-lg p-4 z-20">
               <h3 className="text-lg font-semibold mb-1">
                 {selectedImage.image.title}
               </h3>
               <p className="text-sm text-gray-300">
                 {currentImageIndex + 1} of {selectedImage.sectionImages.length}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {imageTransform.scale > 1
+                  ? "Drag to pan • "
+                  : "Hover for magnifier • "}
+                Use zoom controls or scroll wheel
               </p>
             </div>
           </div>
