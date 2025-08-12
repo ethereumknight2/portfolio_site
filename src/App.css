@@ -220,14 +220,27 @@
     padding: 0.75rem;
   }
 
-  /* Zoom controls positioning on mobile */
-  .zoom-controls {
+  /* Mobile zoom controls positioning - horizontal layout at top */
+  .modal-backdrop .absolute.top-4.left-4 {
     top: 1rem !important;
-    left: 1rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
   }
 
-  .zoom-controls button {
-    padding: 0.5rem;
+  .modal-backdrop .absolute.top-4.left-4 button {
+    padding: 0.5rem !important;
+  }
+
+  /* Adjust navigation arrows positioning on mobile */
+  .modal-backdrop .absolute.left-2 {
+    left: 0.5rem !important;
+  }
+
+  .modal-backdrop .absolute.right-2 {
+    right: 0.5rem !important;
   }
 
   /* Magnifier size adjustment for mobile */

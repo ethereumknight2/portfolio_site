@@ -990,8 +990,8 @@ const App = () => {
               <X size={24} />
             </button>
 
-            {/* Zoom controls */}
-            <div className="absolute top-4 left-4 z-20 flex flex-col space-y-2">
+            {/* Zoom controls - responsive positioning */}
+            <div className="absolute top-4 left-4 z-20 flex lg:flex-col flex-row lg:space-y-2 space-x-2 lg:space-x-0">
               <button
                 onClick={zoomIn}
                 className="text-white hover:text-gray-300 transition-colors duration-200 bg-black bg-opacity-50 rounded-full p-2"
@@ -1015,17 +1015,17 @@ const App = () => {
               </button>
             </div>
 
-            {/* Navigation arrows */}
+            {/* Navigation arrows - adjusted positioning for mobile */}
             <button
               onClick={prevImage}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 z-20 bg-black bg-opacity-50 rounded-full p-2"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 lg:left-4 left-2 text-white hover:text-gray-300 transition-colors duration-200 z-20 bg-black bg-opacity-50 rounded-full p-2"
             >
               <ChevronLeft size={32} />
             </button>
 
             <button
               onClick={nextImage}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 z-20 bg-black bg-opacity-50 rounded-full p-2"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 lg:right-4 right-2 text-white hover:text-gray-300 transition-colors duration-200 z-20 bg-black bg-opacity-50 rounded-full p-2"
             >
               <ChevronRight size={32} />
             </button>
