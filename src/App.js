@@ -111,11 +111,6 @@ const App = () => {
           src: "/images/fullbody5.png",
           title: "Full Body 3",
         },
-        {
-          id: 15,
-          src: "/images/fullbody6.png",
-          title: "Full Body 4",
-        },
       ],
     },
     {
